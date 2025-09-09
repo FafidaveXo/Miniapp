@@ -1,9 +1,8 @@
 import TelegramBot from "node-telegram-bot-api";
 import mysql from "mysql2/promise";
 
+// Create bot (no polling)
 const bot = new TelegramBot(process.env.BOT_TOKEN);
-const frontendUrl = process.env.FRONTEND_BUILD;
-const ADMIN_ID = process.env.ADMIN_ID;
 
 // --- MySQL connection pool ---
 const db = mysql.createPool({
@@ -12,6 +11,9 @@ const db = mysql.createPool({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
 });
+
+const frontendUrl = process.env.FRONTEND_BUILD;
+const ADMIN_ID = process.env.ADMIN_ID;
 
 // --- Mini App button ---
 const sendMiniAppButton = (chatId, text = "Open Store") => {
@@ -108,5 +110,5 @@ bot.onText(/\/stats/, async (msg) => {
   }
 });
 
-// Export bot so api/webhook.js can use it
+// ✅ Export bot for webhook
 export default bot;
