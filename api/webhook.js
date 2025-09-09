@@ -1,27 +1,46 @@
-import TelegramBot from 'node-telegram-bot-api';
+import express from "express";
+import fetch from "node-fetch";
 
-const bot = new TelegramBot(process.env.BOT_TOKEN);
+const router = express.Router();
 
-// Handle /start command
-bot.onText(/\/start/, (msg) => {
-  bot.sendMessage(msg.chat.id, "Welcome to Sheep & Goat Store 🐑🐐", {
-    reply_markup: {
-      inline_keyboard: [
-        [{ text: "Open Store", web_app: { url: process.env.FRONTEND_BUILD } }]
-      ]
+// Telegram Bot Token (from Render env vars)
+const BOT_TOKEN = process.env.BOT_TOKEN;
+const TELEGRAM_API = `https://api.telegram.org/bot${BOT_TOKEN}`;
+
+// Handle webhook updates from Telegram
+router.post("/", async (req, res) => {
+  try {
+    const update = req.body;
+    console.log("Incoming update:", update);
+
+    if (update.message) {
+      const chatId = update.message.chat.id;
+      const text = update.message.text;
+
+      // Example: simple reply
+      let replyText = "I didn’t understand that 🤔";
+      if (text === "/start") {
+        replyText = "🐐 Welcome to Beg Tera Store!\nType 'buy' to see options.";
+      } else if (text.toLowerCase() === "buy") {
+        replyText = "👉 You can buy Sheep here!";
+      }
+
+      // Send reply back to Telegram
+      await fetch(`${TELEGRAM_API}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: replyText,
+        }),
+      });
     }
-  });
+
+    res.sendStatus(200); // Acknowledge Telegram
+  } catch (error) {
+    console.error("Error handling webhook:", error);
+    res.sendStatus(500);
+  }
 });
 
-export default async function handler(req, res) {
-  if (req.method === 'POST') {
-    try {
-      await bot.processUpdate(req.body);
-      return res.status(200).send("ok");
-    } catch (err) {
-      console.error("Webhook error:", err);
-      return res.status(500).send("error");
-    }
-  }
-  return res.status(405).send("Method not allowed");
-}
+export default router;
