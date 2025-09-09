@@ -1,8 +1,8 @@
 import TelegramBot from "node-telegram-bot-api";
 import mysql from "mysql2/promise";
 
-// Create bot (no polling)
-const bot = new TelegramBot(process.env.BOT_TOKEN);
+// --- Create bot (disable polling, we’ll use webhook) ---
+const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: false });
 
 // --- MySQL connection pool ---
 const db = mysql.createPool({
@@ -14,6 +14,10 @@ const db = mysql.createPool({
 
 const frontendUrl = process.env.FRONTEND_BUILD;
 const ADMIN_ID = process.env.ADMIN_ID;
+
+// --- Set Webhook ---
+const WEBHOOK_URL = process.env.BACKEND_URL + "/api/webhook"; // e.g. https://et-a8py.onrender.com/api/webhook
+await bot.setWebHook(WEBHOOK_URL);
 
 // --- Mini App button ---
 const sendMiniAppButton = (chatId, text = "Open Store") => {
@@ -110,5 +114,5 @@ bot.onText(/\/stats/, async (msg) => {
   }
 });
 
-// ✅ Export bot for webhook
+// ✅ Export bot
 export default bot;
